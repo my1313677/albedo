@@ -4,13 +4,26 @@ services:
     build:
       context: ./
       dockerfile: ./db/Dockerfile
-    environment:
-      MYSQL_ROOT_PASSWORD: root
     restart: always
     container_name: albedo-mysql
     image: albedo-mysql
     ports:
       - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: 111111
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: mysql
+      TZ: Asia/Shanghai
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+#    volumes:
+#      - ./mysql/data:/var/lib/mysql
+#      - ./mysql/log:/var/log/mysql
+#      - ./mysql/config:/etc/mysql
 
   albedo-redis:
     image: redis:5.0
@@ -23,9 +36,43 @@ services:
   albedo-admin:
     build:
       context: ./
-      dockerfile: ./albedo-admin/albedo-admin-biz/Dockerfile
+      dockerfile: ./albedo-modules/albedo-admin/Dockerfile
     restart: always
+    ports:
+      - 4000:4000
     container_name: albedo-admin
     hostname: albedo-admin
     image: albedo-admin
 
+  albedo-api:
+    build:
+      context: ./
+      dockerfile: ./albedo-modules/albedo-api/Dockerfile
+    restart: always
+    ports:
+      - 4001:4001
+    container_name: albedo-api
+    hostname: albedo-api
+    image: albedo-api
+
+  albedo-quartz:
+    build:
+      context: ./
+      dockerfile: ./albedo-modules/albedo-quartz/Dockerfile
+    restart: always
+    ports:
+      - 4002:4002
+    container_name: albedo-quartz
+    hostname: albedo-quartz
+    image: albedo-quartz
+
+  albedo-ui:
+    build:
+      context: ./
+      dockerfile: ./albedo-ui/Dockerfile
+    restart: always
+    container_name: albedo-ui
+    hostname: albedo-ui
+    image: albedo-ui
+    ports:
+      - 8081:80

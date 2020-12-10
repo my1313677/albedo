@@ -3,6 +3,8 @@ package com.albedo.java.common.config.apidoc;
 import com.albedo.java.common.config.ApplicationSwaggerProperties;
 import com.albedo.java.common.config.apidoc.customizer.AlbedoSwaggerCustomizer;
 import com.albedo.java.common.config.apidoc.customizer.SwaggerCustomizer;
+import com.albedo.java.common.config.apidoc.customizer.SwaggerLoginApi;
+import com.albedo.java.common.core.vo.PageModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
@@ -16,6 +18,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.DispatcherServlet;
 import springfox.bean.validators.configuration.BeanValidatorPluginsConfiguration;
 import springfox.documentation.schema.AlternateTypeRule;
 import springfox.documentation.service.ApiInfo;
@@ -35,11 +38,12 @@ import static springfox.documentation.builders.PathSelectors.regex;
  * Warning! When having a lot of REST endpoints, Springfox can become a performance issue. In that
  * case, you can use a specific Spring profile for this class, so that only front-end developers
  * have access to the Swagger view.
+ *
+ * @author somewhere
  */
 @Configuration
 @ConditionalOnWebApplication
-@ConditionalOnClass({ApiInfo.class, BeanValidatorPluginsConfiguration.class,
-	Servlet.class})
+@ConditionalOnClass({ApiInfo.class, BeanValidatorPluginsConfiguration.class, Servlet.class, DispatcherServlet.class, Docket.class})
 @Profile({"swagger"})
 @AutoConfigureAfter({ApplicationSwaggerProperties.class})
 @EnableSwagger2
@@ -88,13 +92,21 @@ public class SwaggerAutoConfiguration {
 	}
 
 	/**
-	 * JHipster Swagger Customizer
+	 * Albedo Swagger Customizer
 	 *
-	 * @return the Swagger Customizer of JHipster
+	 * @return the Swagger Customizer of Albedo
 	 */
 	@Bean
-	public AlbedoSwaggerCustomizer jHipsterSwaggerCustomizer() {
+	public AlbedoSwaggerCustomizer albedoSwaggerCustomizer() {
 		return new AlbedoSwaggerCustomizer(applicationSwaggerProperties);
+	}
+
+	/**
+	 * Albedo login api
+	 */
+	@Bean
+	public SwaggerLoginApi swaggerLoginApi() {
+		return new SwaggerLoginApi(applicationSwaggerProperties);
 	}
 
 	/**
@@ -132,6 +144,7 @@ public class SwaggerAutoConfiguration {
 			.forCodeGeneration(true)
 			.directModelSubstitute(ByteBuffer.class, String.class)
 			.genericModelSubstitutes(ResponseEntity.class)
+			.ignoredParameterTypes(PageModel.class)
 			.select()
 			.paths(regex(managementContextPath + ".*"))
 			.build();

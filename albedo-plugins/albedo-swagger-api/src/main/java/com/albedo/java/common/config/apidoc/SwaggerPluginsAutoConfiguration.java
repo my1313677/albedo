@@ -1,6 +1,6 @@
 package com.albedo.java.common.config.apidoc;
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.albedo.java.common.core.vo.PageModel;
 import com.fasterxml.classmate.TypeResolver;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -12,6 +12,11 @@ import org.springframework.context.annotation.Configuration;
 import springfox.documentation.schema.TypeNameExtractor;
 import springfox.documentation.spring.web.plugins.Docket;
 
+/**
+ * @author somewhere
+ * @description
+ * @date 2020/5/31 17:14
+ */
 @Configuration
 @ConditionalOnWebApplication
 @ConditionalOnBean({Docket.class})
@@ -19,7 +24,7 @@ import springfox.documentation.spring.web.plugins.Docket;
 public class SwaggerPluginsAutoConfiguration {
 
 	@Configuration
-	@ConditionalOnClass({Page.class})
+	@ConditionalOnClass({PageModel.class})
 	public static class MybatisPlusPagePluginConfiguration {
 		public MybatisPlusPagePluginConfiguration() {
 		}

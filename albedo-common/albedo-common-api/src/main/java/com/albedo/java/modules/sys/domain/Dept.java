@@ -34,6 +34,8 @@ import lombok.EqualsAndHashCode;
 @TableName("sys_dept")
 public class Dept extends TreeEntity<Dept> {
 
-
-	protected String name;
+	/**
+	 * 锁定标记
+	 */
+	private Integer available;
 }

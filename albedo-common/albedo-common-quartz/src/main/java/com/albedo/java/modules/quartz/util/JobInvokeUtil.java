@@ -4,7 +4,7 @@ import com.albedo.java.common.core.util.ObjectUtil;
 import com.albedo.java.common.core.util.SpringContextHolder;
 import com.albedo.java.common.core.util.StringUtil;
 import com.albedo.java.modules.quartz.domain.Job;
-import org.apache.commons.lang.StringUtils;
+import com.albedo.java.modules.quartz.service.JobService;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -17,6 +17,9 @@ import java.util.List;
  * @author somewhere
  */
 public class JobInvokeUtil {
+
+	public static JobService jobService = SpringContextHolder.getBean(JobService.class);
+
 	/**
 	 * 执行方法
 	 *
@@ -63,7 +66,7 @@ public class JobInvokeUtil {
 	 * @return true是 false否
 	 */
 	public static boolean isValidClassName(String invokeTarget) {
-		return StringUtils.countMatches(invokeTarget, ".") > 1;
+		return StringUtil.contains(invokeTarget, StringUtil.DOT);
 	}
 
 	/**
@@ -73,8 +76,8 @@ public class JobInvokeUtil {
 	 * @return bean名称
 	 */
 	public static String getBeanName(String invokeTarget) {
-		String beanName = StringUtils.substringBefore(invokeTarget, "(");
-		return StringUtils.substringBeforeLast(beanName, ".");
+		String beanName = StringUtil.subBefore(invokeTarget, StringUtil.BRACKETS_START, false);
+		return StringUtil.subBefore(beanName, StringUtil.DOT, true);
 	}
 
 	/**
@@ -84,8 +87,8 @@ public class JobInvokeUtil {
 	 * @return method方法
 	 */
 	public static String getMethodName(String invokeTarget) {
-		String methodName = StringUtils.substringBefore(invokeTarget, "(");
-		return StringUtils.substringAfterLast(methodName, ".");
+		String methodName = StringUtil.subBefore(invokeTarget, StringUtil.BRACKETS_START, false);
+		return StringUtil.subAfter(methodName, StringUtil.DOT, true);
 	}
 
 	/**
@@ -95,20 +98,20 @@ public class JobInvokeUtil {
 	 * @return method方法相关参数列表
 	 */
 	public static List<Object[]> getMethodParams(String invokeTarget) {
-		String methodStr = StringUtils.substringBetween(invokeTarget, "(", ")");
-		if (StringUtils.isEmpty(methodStr)) {
+		String methodStr = StringUtil.subBetween(invokeTarget, StringUtil.BRACKETS_START, StringUtil.BRACKETS_END);
+		if (StringUtil.isEmpty(methodStr)) {
 			return null;
 		}
 		String[] methodParams = methodStr.split(",");
 		List<Object[]> classs = new LinkedList<>();
 		for (int i = 0; i < methodParams.length; i++) {
-			String str = StringUtils.trimToEmpty(methodParams[i]);
+			String str = StringUtil.trimToEmpty(methodParams[i]);
 			// String字符串类型，包含'
-			if (StringUtils.contains(str, "'")) {
-				classs.add(new Object[]{StringUtils.replace(str, "'", ""), String.class});
+			if (StringUtil.contains(str, "'")) {
+				classs.add(new Object[]{StringUtil.replace(str, "'", ""), String.class});
 			}
 			// boolean布尔类型，等于true或者false
-			else if (StringUtils.equals(str, "true") || StringUtils.equalsIgnoreCase(str, "false")) {
+			else if (StringUtil.equals(str, "true") || StringUtil.equalsIgnoreCase(str, "false")) {
 				classs.add(new Object[]{Boolean.valueOf(str), Boolean.class});
 			}
 			// long长整形，包含L
@@ -153,7 +156,7 @@ public class JobInvokeUtil {
 		Object[] classs = new Object[methodParams.size()];
 		int index = 0;
 		for (Object[] os : methodParams) {
-			classs[index] = (Object) os[0];
+			classs[index] = os[0];
 			index++;
 		}
 		return classs;

@@ -18,7 +18,6 @@ package com.albedo.java.modules.sys.service;
 
 import com.albedo.java.common.persistence.service.BaseService;
 import com.albedo.java.modules.sys.domain.UserOnline;
-import com.albedo.java.modules.sys.repository.UserOnlineRepository;
 
 /**
  * <p>
@@ -28,11 +27,32 @@ import com.albedo.java.modules.sys.repository.UserOnlineRepository;
  * @author somewhere
  * @since 2019/2/1
  */
-public interface UserOnlineService extends BaseService<UserOnlineRepository, UserOnline, String> {
+public interface UserOnlineService extends BaseService<UserOnline> {
 
+	/**
+	 * deleteBySessionId
+	 *
+	 * @param sessionId
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
 	void deleteBySessionId(String sessionId);
 
+	/**
+	 * offlineBySessionId
+	 *
+	 * @param sessionId
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
 	void offlineBySessionId(String sessionId);
 
-	UserOnline findOneBySessionId(String sessionId);
+	/**
+	 * saveByEvent
+	 *
+	 * @param userOnline
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
+	void saveByEvent(UserOnline userOnline);
 }

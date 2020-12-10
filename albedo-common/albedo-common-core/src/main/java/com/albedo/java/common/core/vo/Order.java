@@ -1,11 +1,16 @@
 package com.albedo.java.common.core.vo;
 
 
+import cn.hutool.core.builder.EqualsBuilder;
 import cn.hutool.core.builder.HashCodeBuilder;
-import org.apache.commons.lang.builder.EqualsBuilder;
 
 import java.io.Serializable;
 
+/**
+ * @author somewhere
+ * @description
+ * @date 2020/5/31 17:09
+ */
 public class Order implements Serializable {
 	/**
 	 * 默认方向

@@ -1,5 +1,6 @@
 package com.albedo.java.common.core.util;
 
+import cn.hutool.core.net.NetUtil;
 import cn.hutool.http.HttpUtil;
 import com.albedo.java.common.core.config.ApplicationConfig;
 import com.alibaba.fastjson.JSON;
@@ -16,11 +17,11 @@ public class AddressUtil {
 
 	public static final String IP_URL = "http://ip.taobao.com/service/getIpInfo.php";
 
-	public static String getRealAddressByIP(String ip) {
+	public static String getRealAddressByIp(String ip) {
 		String address = "XX XX";
 
 		// 内网不查询
-		if (WebUtil.internalIp(ip)) {
+		if ("0:0:0:0:0:0:0:1".equals(ip) || NetUtil.isInnerIP(ip)) {
 			return "内网IP";
 		}
 		if (ApplicationConfig.isAddressEnabled()) {

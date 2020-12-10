@@ -36,19 +36,17 @@ public interface MenuRepository extends TreeRepository<Menu> {
 	/**
 	 * 通过角色编号查询菜单
 	 *
-	 * @param show 是否显示
 	 * @return
 	 */
-	List<MenuVo> listMenuVos(@Param("show") Integer show);
+	List<MenuVo> findMenuVoAllList();
 
 	/**
 	 * 通过角色编号查询菜单
 	 *
 	 * @param roleId 角色ID
-	 * @param show   是否显示
 	 * @return
 	 */
-	List<MenuVo> listMenuVosByRoleId(@Param("roleId") String roleId, @Param("show") Integer show);
+	List<MenuVo> findMenuVoListByRoleId(@Param("roleId") String roleId);
 
 	/**
 	 * 通过角色ID查询权限
@@ -56,5 +54,7 @@ public interface MenuRepository extends TreeRepository<Menu> {
 	 * @param roleIds Ids
 	 * @return
 	 */
-	List<String> listPermissionsByRoleIds(String roleIds);
+	List<String> findPermissionsByRoleIds(String roleIds);
+
+
 }

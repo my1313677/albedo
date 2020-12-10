@@ -50,10 +50,12 @@ mybatis-plus:
 
 application:
   adminPath: /a
-  base-class-path: com.albedo.java
   address-enabled: true
-  logPath: target/.logs
-  static-file-directory: D:/albedo-file
+  logPath: .logs
+  static-file-directory:
+    mac: ~/albedo-file
+    linux: /home/albedo/file/
+    win: C:\albedo\file\
   cors: #By default CORS are not enabled. Uncomment to enable.
     allowed-origins: "*"
     allowed-methods: "*"
@@ -71,7 +73,6 @@ application:
     authorize:
       - ${application.adminPath}/**
     authorize-permit-all:
-      - ${application.adminPath}/code/**
       - /management/health
       - /v2/api-docs/**
       - /swagger-resources/configuration/ui

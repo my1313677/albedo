@@ -1,20 +1,23 @@
 package com.albedo.java.modules.sys.domain.vo.account;
 
 
-import com.albedo.java.modules.sys.domain.vo.UserDataVo;
+import com.albedo.java.modules.sys.domain.dto.UserDto;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 
 /**
  * View Model object for storing a user's credentials.
+ *
+ * @author somewhere
  */
 @Data
 @ToString
-public class PasswordRestVo {
+public class PasswordRestVo implements Serializable {
 
 	@ApiModelProperty(hidden = true)
 	String passwordPlaintext;
@@ -31,11 +34,11 @@ public class PasswordRestVo {
 	@ApiModelProperty("验证码")
 	private String code;
 	@NotBlank
-	@Size(min = UserDataVo.PASSWORD_MIN_LENGTH, max = UserDataVo.PASSWORD_MAX_LENGTH)
+	@Size(min = UserDto.PASSWORD_MIN_LENGTH, max = UserDto.PASSWORD_MAX_LENGTH)
 	@ApiModelProperty("新密码")
 	private String newPassword;
 	@NotBlank
-	@Size(min = UserDataVo.PASSWORD_MIN_LENGTH, max = UserDataVo.PASSWORD_MAX_LENGTH)
+	@Size(min = UserDto.PASSWORD_MIN_LENGTH, max = UserDto.PASSWORD_MAX_LENGTH)
 	private String confirmPassword;
 
 }

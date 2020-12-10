@@ -12,6 +12,7 @@ import com.albedo.java.modules.sys.repository.PersistentTokenRepository;
 import com.albedo.java.modules.sys.repository.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -29,15 +30,23 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Optional;
 
+/**
+ * @author somewhere
+ * @description
+ * @date 2020/5/30 10:01 下午
+ */
 @Component
 @Slf4j
 public class PersistentTokenRememberMeService extends AbstractRememberMeServices {
-	// Token is valid for one month
+	/**
+	 * Token is valid for one month
+	 */
 	private static final int TOKEN_VALIDITY_DAYS = 31;
+	private static final int TOKEN_LENGTH = 2;
 
 	private static final int TOKEN_VALIDITY_SECONDS = 60 * 60 * 24 * TOKEN_VALIDITY_DAYS;
 
-	private static final long UPGRADED_TOKEN_VALIDITY_MILLIS = 5000l;
+	private static final long UPGRADED_TOKEN_VALIDITY_MILLIS = 5000L;
 
 	private final PersistentTokenCache<UpgradedRememberMeToken> upgradedTokenCache;
 
@@ -61,8 +70,8 @@ public class PersistentTokenRememberMeService extends AbstractRememberMeServices
 	@Override
 	protected UserDetails processAutoLoginCookie(String[] cookieTokens, HttpServletRequest request,
 												 HttpServletResponse response) {
-
-		synchronized (this) { // prevent 2 authentication requests from the same user in parallel
+		// prevent 2 authentication requests from the same user in parallel
+		synchronized (this) {
 			if (cookieTokens == null) {
 				return null;
 			}
@@ -82,8 +91,8 @@ public class PersistentTokenRememberMeService extends AbstractRememberMeServices
 				log.debug("Refreshing persistent login token for user '{}', series '{}'", login, persistentToken.getSeries());
 				persistentToken.setTokenDate(LocalDateTime.now());
 				persistentToken.setTokenValue(RandomUtil.generateTokenData());
-				persistentToken.setIpAddress(WebUtil.getIP(request));
-				persistentToken.setUserAgent(request.getHeader("User-Agent"));
+				persistentToken.setIpAddress(WebUtil.getIp(request));
+				persistentToken.setUserAgent(request.getHeader(HttpHeaders.USER_AGENT));
 				try {
 					persistentTokenRepository.updateById(persistentToken);
 				} catch (DataAccessException e) {
@@ -115,7 +124,7 @@ public class PersistentTokenRememberMeService extends AbstractRememberMeServices
 		String login = successfulAuthentication.getName();
 
 		log.debug("Creating new persistent login for user {}", login);
-		PersistentToken persistentToken = Optional.of(userRepository.getUserVoByUsername(login)).map(u -> {
+		PersistentToken persistentToken = Optional.of(userRepository.findVoByUsername(login)).map(u -> {
 			PersistentToken t = new PersistentToken();
 			t.setSeries(RandomUtil.generateSeriesData());
 			t.setUserAgent(u.getId());
@@ -123,12 +132,12 @@ public class PersistentTokenRememberMeService extends AbstractRememberMeServices
 			t.setUsername(u.getUsername());
 			t.setTokenValue(RandomUtil.generateTokenData());
 			t.setTokenDate(LocalDateTime.now());
-			t.setIpAddress(WebUtil.getIP(request));
-			t.setLoginLocation(AddressUtil.getRealAddressByIP(t.getIpAddress()));
-			t.setUserAgent(request.getHeader("User-Agent"));
+			t.setIpAddress(WebUtil.getIp(request));
+			t.setLoginLocation(AddressUtil.getRealAddressByIp(t.getIpAddress()));
+			t.setUserAgent(request.getHeader(HttpHeaders.USER_AGENT));
 			UserAgent userAgent = UserAgentUtil.parse(t.getUserAgent());
-			t.setBrowser(userAgent.getOs().getName());
-			t.setOs(userAgent.getBrowser().getName());
+			t.setBrowser(userAgent.getBrowser().getName());
+			t.setOs(userAgent.getOs().getName());
 			return t;
 		}).orElseThrow(() -> new UsernameNotFoundException("User " + login + " was not found in the database"));
 		try {
@@ -170,8 +179,8 @@ public class PersistentTokenRememberMeService extends AbstractRememberMeServices
 	 * Validate the token and return it.
 	 */
 	private PersistentToken getToken(String[] cookieTokens) {
-		if (cookieTokens.length != 2) {
-			throw new InvalidCookieException("Cookie token did not contain " + 2 +
+		if (cookieTokens.length != TOKEN_LENGTH) {
+			throw new InvalidCookieException("Cookie token did not contain " + TOKEN_LENGTH +
 				" tokens, but contained '" + Arrays.asList(cookieTokens) + "'");
 		}
 		String presentedSeries = cookieTokens[0];

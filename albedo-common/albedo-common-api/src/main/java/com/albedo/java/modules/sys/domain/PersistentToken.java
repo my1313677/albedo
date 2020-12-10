@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 
 /**
  * Persistent tokens are used by Spring Security to automatically log in users.
+ *
+ * @author somewhere
  */
 @TableName("sys_persistent_token")
 @Data
@@ -38,7 +40,9 @@ public class PersistentToken extends GeneralEntity<PersistentToken> {
 	@TableField("token_date")
 	private LocalDateTime tokenDate;
 
-	//an IPV6 address max length is 39 characters
+	/**
+	 * an IPV6 address max length is 39 characters
+	 */
 	@Size(max = 39)
 	@TableField("ip_address")
 	private String ipAddress;

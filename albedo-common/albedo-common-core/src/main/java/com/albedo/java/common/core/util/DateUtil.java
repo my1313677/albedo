@@ -5,6 +5,11 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
+/**
+ * @author somewhere
+ * @description
+ * @date 2020/5/30 11:24 下午
+ */
 public class DateUtil extends cn.hutool.core.date.DateUtil {
 
 	/**

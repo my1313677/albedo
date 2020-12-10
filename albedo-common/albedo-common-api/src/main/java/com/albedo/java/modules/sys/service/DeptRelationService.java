@@ -16,9 +16,9 @@
 
 package com.albedo.java.modules.sys.service;
 
+import com.albedo.java.common.persistence.service.BaseService;
 import com.albedo.java.modules.sys.domain.DeptRelation;
-import com.albedo.java.modules.sys.domain.vo.DeptDataVo;
-import com.baomidou.mybatisplus.extension.service.IService;
+import com.albedo.java.modules.sys.domain.dto.DeptDto;
 
 /**
  * <p>
@@ -28,14 +28,14 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @author somewhere
  * @since 2019/2/1
  */
-public interface DeptRelationService extends IService<DeptRelation> {
+public interface DeptRelationService extends BaseService<DeptRelation> {
 
 	/**
 	 * 新建部门关系
 	 *
-	 * @param deptDataVo 部门
+	 * @param deptDto 部门
 	 */
-	void saveDeptRelation(DeptDataVo deptDataVo);
+	void saveDeptRelation(DeptDto deptDto);
 
 	/**
 	 * 通过ID删除部门关系

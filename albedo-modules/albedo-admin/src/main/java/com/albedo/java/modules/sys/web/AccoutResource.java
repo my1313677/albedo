@@ -1,30 +1,36 @@
 package com.albedo.java.modules.sys.web;
 
 import cn.hutool.core.io.IoUtil;
+import cn.hutool.crypto.asymmetric.KeyType;
+import cn.hutool.crypto.asymmetric.RSA;
+import com.albedo.java.common.core.annotation.AnonymousAccess;
+import com.albedo.java.common.core.config.ApplicationProperties;
 import com.albedo.java.common.core.constant.CommonConstants;
-import com.albedo.java.common.core.util.R;
-import com.albedo.java.common.core.util.ResultBuilder;
+import com.albedo.java.common.core.constant.SecurityConstants;
+import com.albedo.java.common.core.util.Result;
 import com.albedo.java.common.core.util.StringUtil;
+import com.albedo.java.common.log.annotation.LogOperate;
 import com.albedo.java.common.security.util.SecurityUtil;
 import com.albedo.java.common.util.RedisUtil;
 import com.albedo.java.common.web.resource.BaseResource;
-import com.albedo.java.modules.sys.domain.vo.UserDataVo;
+import com.albedo.java.modules.sys.domain.dto.UserEmailDto;
 import com.albedo.java.modules.sys.domain.vo.account.PasswordChangeVo;
 import com.albedo.java.modules.sys.domain.vo.account.PasswordRestVo;
 import com.albedo.java.modules.sys.service.UserService;
+import com.albedo.java.modules.tool.domain.vo.EmailVo;
+import com.albedo.java.modules.tool.service.EmailService;
 import com.google.code.kaptcha.Producer;
+import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.MediaType;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.awt.image.BufferedImage;
@@ -36,38 +42,29 @@ import java.util.concurrent.TimeUnit;
  *
  * @author somewhere
  */
-@Controller
+@RestController
 @RequestMapping("${application.admin-path}")
 @Slf4j
 @AllArgsConstructor
+@Api(tags = "账户相关")
 public class AccoutResource extends BaseResource {
 
 	private final UserService userService;
 	private final Producer producer;
-	private final PasswordEncoder passwordEncoder;
+	private final ApplicationProperties applicationProperties;
+	private final EmailService emailService;
 
-	/**
-	 * 功能描述: 检查密码长度
-	 *
-	 * @param: [password]
-	 * @return: boolean
-	 */
-	private static boolean checkPasswordLength(String password) {
-		return !StringUtil.isEmpty(password) &&
-			password.length() >= UserDataVo.PASSWORD_MIN_LENGTH &&
-			password.length() <= UserDataVo.PASSWORD_MAX_LENGTH;
-	}
 
 	/**
 	 * {@code GET  /authenticate} : check if the user is authenticated, and return its login.
 	 *
-	 * @param request the HTTP request.
 	 * @return the login if the user is authenticated.
 	 */
-	@GetMapping("/authenticate")
-	public String isAuthenticated(HttpServletRequest request) {
+	@AnonymousAccess
+	@GetMapping(SecurityConstants.AUTHENTICATE_URL)
+	public Result isAuthenticated() throws AccessDeniedException {
 		log.debug("REST request to check if the current user is authenticated");
-		return request.getRemoteUser();
+		return Result.buildOkData(SecurityUtil.getUser() == null ? null : SecurityUtil.getUser().getUsername());
 	}
 
 	/**
@@ -78,25 +75,42 @@ public class AccoutResource extends BaseResource {
 	 */
 	@ApiOperation(value = "修改密码")
 	@PostMapping(path = "/account/change-password")
-	public R changePassword(@Valid @RequestBody PasswordChangeVo passwordChangeVo) {
-		Assert.isTrue(passwordChangeVo != null &&
-			checkPasswordLength(passwordChangeVo.getNewPassword()), "密码格式有误");
-		Assert.isTrue(!passwordChangeVo.getNewPassword().equals(passwordChangeVo.getOldPassword()),
-			"新旧密码不能相同");
-		Assert.isTrue(passwordChangeVo.getNewPassword().equals(passwordChangeVo.getConfirmPassword()),
-			"两次输入密码不一致");
-		Assert.isTrue(passwordEncoder.matches(passwordChangeVo.getOldPassword(),
-			SecurityUtil.getUser().getPassword()),
-			"输入原密码有误");
-
-		passwordChangeVo.setNewPassword(passwordEncoder.encode(passwordChangeVo.getNewPassword()));
+	public Result changePassword(@Valid @RequestBody PasswordChangeVo passwordChangeVo) {
+		// 密码解密
+		RSA rsa = new RSA(applicationProperties.getRsa().getPrivateKey(), applicationProperties.getRsa().getPublicKey());
+		String oldPass = new String(rsa.decrypt(passwordChangeVo.getOldPassword(), KeyType.PrivateKey));
+		String newPass = new String(rsa.decrypt(passwordChangeVo.getNewPassword(), KeyType.PrivateKey));
+		String confirmPass = new String(rsa.decrypt(passwordChangeVo.getConfirmPassword(), KeyType.PrivateKey));
+		passwordChangeVo.setNewPassword(newPass);
+		passwordChangeVo.setConfirmPassword(confirmPass);
+		passwordChangeVo.setOldPassword(oldPass);
 		userService.changePassword(SecurityUtil.getUser().getUsername(),
 			passwordChangeVo);
-		return R.buildOk("修改成功");
+		return Result.buildOk("密码修改成功，请重新登录");
 	}
 
+	@ApiOperation("修改头像")
+	@PostMapping(value = "/account/change-avatar")
+	public Result<String> updateAvatar(@RequestParam String avatar) {
+		userService.updateAvatar(SecurityUtil.getUser().getUsername(), avatar);
+		return Result.buildOk("头像修改成功");
+	}
 
-	@GetMapping(path = "/code/{randomStr}")
+	@LogOperate("修改邮箱")
+	@ApiOperation("修改邮箱")
+	@PostMapping(value = "/account/change-email/{code}")
+	public Result<String> updateEmail(@PathVariable String code, @RequestBody UserEmailDto userEmailDto) {
+		// 密码解密
+		RSA rsa = new RSA(applicationProperties.getRsa().getPrivateKey(), applicationProperties.getRsa().getPublicKey());
+		String password = new String(rsa.decrypt(userEmailDto.getPassword(), KeyType.PrivateKey));
+		userEmailDto.setPassword(password);
+		emailService.validated(CommonConstants.EMAIL_RESET_EMAIL_CODE + userEmailDto.getEmail(), code);
+		userService.updateEmail(SecurityUtil.getUser().getUsername(), userEmailDto);
+		return Result.buildOk("修改邮箱成功");
+	}
+
+	@AnonymousAccess
+	@GetMapping(path = "/code/{randomStr}", produces = MediaType.IMAGE_JPEG_VALUE)
 	@ApiOperation(value = "获取验证码")
 	public void valicode(@PathVariable String randomStr, HttpServletResponse response) throws IOException {
 		Assert.isTrue(StringUtil.isNotEmpty(randomStr), "机器码不能为空");
@@ -116,37 +130,48 @@ public class AccoutResource extends BaseResource {
 	}
 
 
-//    /**
-//     * 发送手机验证码
-//     * 后期要加接口限制
-//     *
-//     * @param mobile 手机号
-//     * @return R
-//     */
-//    @GetMapping("/rest/smsCode/{mobile}")
-//    @ApiOperation(value = "发送手机验证码")
-//    public ResponseEntity createCode(@PathVariable String mobile) {
-//        Assert.isTrue(StringUtil.isNotEmpty(mobile), "手机号不能为空");
-//        userService.sendSmsCode(mobile);
-//        return ResultBuilder.buildOk("发送成功");
-//    }
-
 	/**
 	 * 重置密码
 	 *
 	 * @param passwordRestVo
 	 * @return
 	 */
-	@PostMapping("/rest/password")
+	@PostMapping("/reset/password")
 	@ApiOperation(value = "重置密码")
-	public ResponseEntity resetPassword(@RequestBody @Valid PasswordRestVo passwordRestVo) {
-
-		Assert.isTrue(passwordRestVo.getNewPassword().equals(passwordRestVo.getConfirmPassword()),
-			"两次输入密码不一致");
-		passwordRestVo.setPasswordPlaintext(passwordRestVo.getNewPassword());
-		passwordRestVo.setNewPassword(passwordEncoder.encode(passwordRestVo.getNewPassword()));
+	public Result resetPassword(@RequestBody @Valid PasswordRestVo passwordRestVo) {
 		userService.resetPassword(passwordRestVo);
-		return ResultBuilder.buildOk("发送成功");
+		return Result.buildOk("发送成功");
 	}
+
+	@PostMapping(value = "/reset/email-send")
+	@ApiOperation("重置邮箱，发送验证码")
+	public Result<Object> resetEmail(@RequestParam String email) {
+		EmailVo emailVo = emailService.sendEmail(email, CommonConstants.EMAIL_RESET_EMAIL_CODE);
+		emailService.send(emailVo, emailService.find());
+		return Result.buildOk("发送成功");
+	}
+
+	@PostMapping(value = "/reset/pass-send")
+	@ApiOperation("重置密码，发送验证码")
+	public Result<Object> resetPass(@RequestParam String email) {
+		EmailVo emailVo = emailService.sendEmail(email, CommonConstants.EMAIL_RESET_PWD_CODE);
+		emailService.send(emailVo, emailService.find());
+		return Result.buildOk("发送成功");
+	}
+
+	@GetMapping(value = "/validate-pass")
+	@ApiOperation("验证码验证重置密码")
+	public Result<Object> validatedByPass(@RequestParam String email, @RequestParam String code) {
+		emailService.validated(CommonConstants.EMAIL_RESET_PWD_CODE + email, code);
+		return Result.buildOk("验证成功");
+	}
+
+	@GetMapping(value = "/validate-email")
+	@ApiOperation("验证码验证重置邮箱")
+	public Result<Object> validatedByEmail(@RequestParam String email, @RequestParam String code) {
+		emailService.validated(CommonConstants.EMAIL_RESET_EMAIL_CODE + email, code);
+		return Result.buildOk("验证成功");
+	}
+
 
 }

@@ -36,5 +36,21 @@ public interface RoleRepository extends BaseRepository<Role> {
 	 * @param userId
 	 * @return
 	 */
-	List<Role> listRolesByUserId(String userId);
+	List<Role> findListByUserId(String userId);
+
+	/**
+	 * 通过部门ID，查询角色信息
+	 *
+	 * @param deptId
+	 * @return
+	 */
+	List<Role> findListByDeptId(String deptId);
+
+	/**
+	 * 通过菜单ID，查询角色信息
+	 *
+	 * @param menuId
+	 * @return
+	 */
+	List<Role> findListByMenuId(String menuId);
 }

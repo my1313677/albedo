@@ -18,7 +18,6 @@ package com.albedo.java.common.config;
 
 import com.albedo.java.common.persistence.datascope.DataScopeInterceptor;
 import com.albedo.java.common.persistence.handler.EntityMetaObjectHandler;
-import com.albedo.java.common.persistence.injector.EntityMetaSqlInjector;
 import com.baomidou.mybatisplus.extension.plugins.OptimisticLockerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor;
 import org.apache.ibatis.mapping.DatabaseIdProvider;
@@ -55,16 +54,6 @@ public class MybatisPlusConfigurer {
 	@Bean
 	public DataScopeInterceptor dataScopeInterceptor() {
 		return new DataScopeInterceptor();
-	}
-
-	/**
-	 * ql注入
-	 *
-	 * @return
-	 */
-	@Bean
-	public EntityMetaSqlInjector entityMetaSqlInjector() {
-		return new EntityMetaSqlInjector();
 	}
 
 	/**

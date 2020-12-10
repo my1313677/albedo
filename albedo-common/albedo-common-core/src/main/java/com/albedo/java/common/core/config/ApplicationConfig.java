@@ -39,8 +39,8 @@ public class ApplicationConfig {
 		if (map != null && !map.isEmpty() && qualifiedKey != null) {
 			String input = String.valueOf(qualifiedKey);
 			if (!"".equals(input)) {
-				if (input.contains(".")) {
-					int index = input.indexOf(".");
+				if (input.contains(StringUtil.DOT)) {
+					int index = input.indexOf(StringUtil.DOT);
 					String left = input.substring(0, index);
 					String right = input.substring(index + 1);
 					return getProperty((Map<?, ?>) map.get(left), right);
@@ -85,7 +85,6 @@ public class ApplicationConfig {
 		// in
 		// the
 		// classpath
-//        props.load(is);
 		props = new Yaml().load(is);
 		// dumpSystemConfig();
 	}
@@ -99,7 +98,15 @@ public class ApplicationConfig {
 	 * 获取文件上传路径
 	 */
 	public static String getStaticFileDirectory() {
-		return get("application.static-file-directory");
+		String os = System.getProperty("os.name").toLowerCase();
+		boolean win = os.startsWith("win");
+		boolean mac = os.startsWith("mac");
+		if (win) {
+			return get("application.static-file-directory.win");
+		} else if (mac) {
+			return get("application.static-file-directory.mac");
+		}
+		return get("application.static-file-directory.linux");
 	}
 
 	/**

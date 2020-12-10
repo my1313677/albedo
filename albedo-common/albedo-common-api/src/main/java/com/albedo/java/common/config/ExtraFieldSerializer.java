@@ -21,6 +21,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * @author somewhere
+ * @description
+ * @date 2020/5/30 11:24 下午
+ */
 @Log4j2
 public class ExtraFieldSerializer extends BeanSerializerBase {
 
@@ -47,11 +52,13 @@ public class ExtraFieldSerializer extends BeanSerializerBase {
 		super(source, objectIdWriter, filterId);
 	}
 
+	@Override
 	public BeanSerializerBase withObjectIdWriter(
 		ObjectIdWriter objectIdWriter) {
 		return new ExtraFieldSerializer(this, objectIdWriter);
 	}
 
+	@Override
 	protected BeanSerializerBase withIgnorals(Set<String> toIgnore) {
 		return new ExtraFieldSerializer(this, toIgnore);
 	}
@@ -67,6 +74,7 @@ public class ExtraFieldSerializer extends BeanSerializerBase {
 	}
 
 
+	@Override
 	protected void serializeFields(Object bean, JsonGenerator gen, SerializerProvider provider) throws IOException {
 		BeanPropertyWriter[] props;
 		if (this._filteredProps != null && provider.getActiveView() != null) {
@@ -159,6 +167,7 @@ public class ExtraFieldSerializer extends BeanSerializerBase {
 	}
 
 
+	@Override
 	public void serialize(Object bean, JsonGenerator jgen,
 						  SerializerProvider provider) throws IOException {
 		jgen.writeStartObject();

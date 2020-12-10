@@ -29,7 +29,10 @@ spring:
     store-type: redis
   profiles:
     active: ${spring.profiles.active}
-
+  servlet:
+    multipart:
+      max-file-size: "100MB"
+      max-request-size: "1000MB"
 # mybaits-plus配置
 mybatis-plus:
   mapper-locations: classpath*:/mapper/*/*Mapper.xml
@@ -50,10 +53,12 @@ mybatis-plus:
 
 application:
   adminPath: /a
-  base-class-path: com.albedo.java
   address-enabled: true
-  logPath: target/.logs
-  static-file-directory: D:/albedo-file
+  logPath: .logs
+  static-file-directory:
+    mac: ~/albedo-file
+    linux: /home/albedo/file/
+    win: C:\albedo\file\
   cors: #By default CORS are not enabled. Uncomment to enable.
     allowed-origins: "*"
     allowed-methods: "*"
@@ -63,6 +68,10 @@ application:
     max-age: 1800
   http:
     version: V_1_1 # To use HTTP/2 you will need SSL support (see above the "server.ssl" configuration)
+  #密码加密传输，前端公钥加密，后端私钥解密
+  rsa:
+    public-key: MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAN4UOrkIuLpL0o7WItgIUkP/RFBsurMPQ7fTaOKwT+S9tWly0xMmJzSl9Kdh8MpWcyz+5nUSb7SgGWxiE3qIL2sCAwEAAQ==
+    private-key: MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEA3hQ6uQi4ukvSjtYi2AhSQ/9EUGy6sw9Dt9No4rBP5L21aXLTEyYnNKX0p2HwylZzLP7mdRJvtKAZbGITeogvawIDAQABAkBnojsRE//Yd/+nRkh2VdPGBX5kpYiufKYWR6K/fpWZ4QrASv5sIuD2Cqfp5e8K6fZ4DW/CSUMKGq6Vq6xZVeLJAiEA/BazblQTEeGFsQydEmaBA1CWupPOAFO2xg7c/5s1sI8CIQDhhlRtXfjqcUWhj4Um1t8pFBkFHiN8RC1hufaZs9OJZQIgEuLogoWOADLzPzaAthYz6DmrcUMNlfyvntsSN5w7Q4UCIQCu7raAWvsgRxqe1iePV+6j+33o1VbrJisZedkJok48bQIgWVX940QICkAUhYRJgX9uj7oWOAyE1V8ambte6SHBHhs=
   security:
     # 前端密码密钥，必须16位
     encode-key: 'somewhere-albedo'
@@ -71,7 +80,6 @@ application:
     authorize:
       - ${application.adminPath}/**
     authorize-permit-all:
-      - ${application.adminPath}/code/**
       - /management/health
       - /v2/api-docs/**
       - /swagger-resources/configuration/ui

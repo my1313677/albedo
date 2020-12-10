@@ -9,6 +9,8 @@ import java.util.Optional;
 
 /**
  * Implementation of AuditorAware based on Spring Security.
+ *
+ * @author somewhere
  */
 @Component
 public class SpringSecurityAuditorAware implements AuditorAware<String> {

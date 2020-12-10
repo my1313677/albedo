@@ -1,8 +1,8 @@
 package com.albedo.java.common.core.util;
 
+import cn.hutool.core.io.FileUtil;
 import com.albedo.java.common.core.config.ApplicationConfig;
 import com.albedo.java.common.core.exception.RuntimeMsgException;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -101,26 +101,23 @@ public class FileUploadUtil {
 	public static final String extractFilename(MultipartFile file) {
 		String fileName = file.getOriginalFilename();
 		String extension = getExtension(file);
-		fileName = DateUtil.datePath() + "/" + encodingFilename(fileName) + "." + extension;
+		fileName = DateUtil.datePath() + StringUtil.SLASH + encodingFilename(fileName) + StringUtil.DOT + extension;
 		return fileName;
 	}
 
 	private static final File getAbsoluteFile(String uploadDir, String fileName) throws IOException {
-		File desc = new File(uploadDir + File.separator + fileName);
+		File desc = new File(uploadDir + File.separator + fileName).getCanonicalFile();
 
 		if (!desc.getParentFile().exists()) {
 			desc.getParentFile().mkdirs();
-		}
-		if (!desc.exists()) {
-			desc.createNewFile();
 		}
 		return desc;
 	}
 
 	private static final String getPathFileName(String uploadDir, String fileName) throws IOException {
-		int dirLastIndex = uploadDir.lastIndexOf("/") + 1;
+		int dirLastIndex = uploadDir.lastIndexOf(StringUtil.SLASH) + 1;
 		String currentDir = StringUtil.subSuf(uploadDir, dirLastIndex);
-		String pathFileName = "/profile/" + currentDir + "/" + fileName;
+		String pathFileName = "/asset-file/" + currentDir + StringUtil.SLASH + fileName;
 		return pathFileName;
 	}
 
@@ -177,7 +174,7 @@ public class FileUploadUtil {
 	 * @return 后缀名
 	 */
 	public static final String getExtension(MultipartFile file) {
-		String extension = FilenameUtils.getExtension(file.getOriginalFilename());
+		String extension = FileUtil.extName(file.getOriginalFilename());
 		if (StringUtil.isEmpty(extension)) {
 			extension = MimeTypeUtil.getExtension(file.getContentType());
 		}

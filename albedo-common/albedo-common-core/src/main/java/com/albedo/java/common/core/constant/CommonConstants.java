@@ -72,14 +72,12 @@ public interface CommonConstants {
 	String SPRING_PROFILE_JWT = "jwt";
 	String SPRING_PROFILE_SWAGGER = "swagger";
 
+	Integer ZERO = 0;
 
-	// 对/错
 	String SYSTEM_TRUE = "true";
 	String SYSTEM_FALSE = "false";
-	// 是/否
 	Integer YES = 1;
-	Integer NO = 0;
-	// 是/否
+	Integer NO = ZERO;
 	String STR_YES = "1";
 	String STR_NO = "0";
 
@@ -178,6 +176,17 @@ public interface CommonConstants {
 	 * 默认保存code的前缀
 	 */
 	String DEFAULT_CODE_KEY = "DEFAULT_CODE_KEY_";
+
+	/**
+	 * 通过旧邮箱重置邮箱
+	 */
+	String EMAIL_RESET_EMAIL_CODE = "EMAIL_RESET_EMAIL_CODE_";
+	/**
+	 * 通过邮箱重置密码
+	 */
+	String EMAIL_RESET_PWD_CODE = "EMAIL_RESET_PWD_CODE_";
+
+
 	/**
 	 * 默认保存登录的前缀
 	 */

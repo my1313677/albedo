@@ -18,22 +18,19 @@ package com.albedo.java.common.log.util;
 
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.URLUtil;
-import cn.hutool.http.HttpUtil;
 import cn.hutool.http.useragent.UserAgent;
 import cn.hutool.http.useragent.UserAgentUtil;
 import com.albedo.java.common.core.util.AddressUtil;
+import com.albedo.java.common.core.util.RequestHolder;
 import com.albedo.java.common.core.util.WebUtil;
-import com.albedo.java.common.security.filter.warpper.BodyRequestWrapper;
 import com.albedo.java.modules.sys.domain.LogOperate;
 import lombok.experimental.UtilityClass;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
  * 系统日志工具类
@@ -43,43 +40,20 @@ import java.util.Objects;
 @UtilityClass
 public class SysLogUtils {
 	public LogOperate getSysLog() {
-		HttpServletRequest request = ((ServletRequestAttributes) Objects
-			.requireNonNull(RequestContextHolder.getRequestAttributes())).getRequest();
+		HttpServletRequest request = RequestHolder.getHttpServletRequest();
 		LogOperate logOperate = new LogOperate();
-		logOperate.setCreatedBy(Objects.requireNonNull(getUserId()));
+		logOperate.setCreatedBy(getUserId());
 		logOperate.setCreatedDate(LocalDateTime.now());
-		logOperate.setUsername(Objects.requireNonNull(getUsername()));
-		logOperate.setIpAddress(WebUtil.getIP(request));
-		logOperate.setIpLocation(AddressUtil.getRealAddressByIP(logOperate.getIpAddress()));
-		logOperate.setUserAgent(request.getHeader("User-Agent"));
+		logOperate.setUsername(getUsername());
+		logOperate.setIpAddress(WebUtil.getIp(request));
+		logOperate.setIpLocation(AddressUtil.getRealAddressByIp(logOperate.getIpAddress()));
+		logOperate.setUserAgent(request.getHeader(HttpHeaders.USER_AGENT));
 		UserAgent userAgent = UserAgentUtil.parse(logOperate.getUserAgent());
 		logOperate.setBrowser(userAgent.getBrowser().getName());
 		logOperate.setOs(userAgent.getOs().getName());
 		logOperate.setRequestUri(URLUtil.getPath(request.getRequestURI()));
-		logOperate.setMethod(request.getMethod());
-		if (request instanceof BodyRequestWrapper) {
-			String body = ((BodyRequestWrapper) request).getRequestBody();
-			logOperate.setParams(body);
-		} else {
-			logOperate.setParams(HttpUtil.toParams(request.getParameterMap()));
-		}
-//		log.setServiceId(getClientId());
 		return logOperate;
 	}
-
-	/**
-	 * 获取客户端
-	 *
-	 * @return clientId
-	 */
-//	private String getClientId() {
-//		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-//		if (authentication instanceof OAuth2Authentication) {
-//			OAuth2Authentication auth2Authentication = (OAuth2Authentication) authentication;
-//			return auth2Authentication.getOAuth2Request().getClientId();
-//		}
-//		return null;
-//	}
 
 	/**
 	 * 获取用户名称

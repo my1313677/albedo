@@ -16,23 +16,38 @@
 
 package com.albedo.java.common.core.vo;
 
+import com.albedo.java.common.core.util.tree.TreeNodeAware;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author somewhere
  * @date 2017年11月9日23:33:45
  */
 @Data
-public class TreeNode<T> {
+public class TreeNode<T> implements TreeNodeAware<T>, Serializable {
 	protected String id;
 	protected String parentId;
 	protected List<T> children = new ArrayList<T>();
 	private String label;
 
-	public void add(T node) {
-		children.add(node);
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		return Objects.equals(id, ((TreeNode) o).id);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(id);
 	}
 }

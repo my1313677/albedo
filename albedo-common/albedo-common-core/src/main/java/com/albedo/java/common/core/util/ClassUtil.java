@@ -17,10 +17,10 @@
 package com.albedo.java.common.core.util;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ReflectUtil;
 import lombok.experimental.UtilityClass;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.Validate;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
@@ -91,8 +91,9 @@ public class ClassUtil extends org.springframework.util.ClassUtils {
 	 * 改变private/protected的成员变量为public，尽量不调用实际改动的语句，避免JDK的SecurityManager抱怨。
 	 */
 	public static void makeAccessible(Field field) {
-		if ((!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())
-			|| Modifier.isFinal(field.getModifiers())) && !field.isAccessible()) {
+		boolean flag = (!Modifier.isPublic(field.getModifiers()) || !Modifier.isPublic(field.getDeclaringClass().getModifiers())
+			|| Modifier.isFinal(field.getModifiers())) && !field.isAccessible();
+		if (flag) {
 			field.setAccessible(true);
 		}
 	}
@@ -101,8 +102,8 @@ public class ClassUtil extends org.springframework.util.ClassUtils {
 	 * 循环向上转型, 获取对象的DeclaredField, 并强制设置为可访问. 如向上转型到Object仍无法找到, 返回null.
 	 */
 	public static Field getAccessibleField(final Class<?> cls, final String fieldName) {
-		Validate.notNull(cls, "cls can't be null");
-		Validate.notEmpty(fieldName, "fieldName can't be blank");
+		Assert.notNull(cls, "cls can't be null");
+		Assert.notEmpty(fieldName, "fieldName can't be blank");
 		for (Class<?> superClass = cls; superClass != Object.class; superClass = superClass
 			.getSuperclass()) {
 			try {
@@ -136,7 +137,6 @@ public class ClassUtil extends org.springframework.util.ClassUtils {
 			try {
 				an = temp.getDeclaredField(pName).getAnnotation(annotationClass);
 			} catch (Exception e) {
-				// logger.debug(e.getMessage());
 			}
 			try {
 				if (an == null) {
@@ -144,7 +144,6 @@ public class ClassUtil extends org.springframework.util.ClassUtils {
 						.getAnnotation(annotationClass);
 				}
 			} catch (Exception e) {
-				// logger.debug(e.getMessage());
 			}
 			if (temp != null && !(temp.getClass().getName().equals(Object.class.getName()))) {
 				temp = temp.getSuperclass();
@@ -255,7 +254,7 @@ public class ClassUtil extends org.springframework.util.ClassUtils {
 			return ((Map) obj).get(propertyName);
 		}
 		Object object = obj;
-		for (String name : StringUtil.split(propertyName, ".")) {
+		for (String name : StringUtil.split(propertyName, StringUtil.DOT)) {
 			object = ReflectUtil.invoke(object, GETTER_PREFIX + StringUtil.upperFirst(name));
 		}
 		return object;
@@ -266,7 +265,7 @@ public class ClassUtil extends org.springframework.util.ClassUtils {
 	 */
 	public static void invokeSetter(Object obj, String propertyName, Object value) {
 		Object object = obj;
-		String[] names = StringUtil.split(propertyName, ".");
+		String[] names = StringUtil.split(propertyName, StringUtil.DOT);
 		for (int i = 0; i < names.length; i++) {
 			if (i < names.length - 1) {
 				object = ReflectUtil.invoke(object, GETTER_PREFIX + StringUtil.upperFirst(names[i]),

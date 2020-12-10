@@ -17,39 +17,57 @@
 package com.albedo.java.modules.sys.service;
 
 import com.albedo.java.common.core.vo.PageModel;
-import com.albedo.java.common.persistence.service.DataVoService;
+import com.albedo.java.common.persistence.datascope.DataScope;
+import com.albedo.java.common.persistence.service.DataService;
 import com.albedo.java.modules.sys.domain.User;
-import com.albedo.java.modules.sys.domain.vo.UserDataVo;
+import com.albedo.java.modules.sys.domain.dto.UserDto;
+import com.albedo.java.modules.sys.domain.dto.UserEmailDto;
+import com.albedo.java.modules.sys.domain.dto.UserQueryCriteria;
 import com.albedo.java.modules.sys.domain.vo.UserExcelVo;
 import com.albedo.java.modules.sys.domain.vo.UserInfo;
 import com.albedo.java.modules.sys.domain.vo.UserVo;
 import com.albedo.java.modules.sys.domain.vo.account.PasswordChangeVo;
 import com.albedo.java.modules.sys.domain.vo.account.PasswordRestVo;
-import com.albedo.java.modules.sys.repository.UserRepository;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author somewhere
  * @date 2019/2/1
  */
-public interface UserService extends DataVoService<UserRepository, User, String, UserDataVo> {
+public interface UserService extends DataService<User, UserDto, String> {
 	/**
 	 * 查询用户信息
 	 *
 	 * @param userVo 用户
 	 * @return userInfo
 	 */
-	UserInfo getUserInfo(UserVo userVo);
+	UserInfo getInfo(UserVo userVo);
 
 	/**
-	 * 分页查询用户信息（含有角色信息）
+	 * findPage 分页查询用户信息（含有角色信息）
 	 *
-	 * @param pm 分页对象
-	 * @return
+	 * @param pm
+	 * @param userQueryCriteria
+	 * @param dataScope
+	 * @return com.baomidou.mybatisplus.core.metadata.IPage<com.albedo.java.modules.sys.domain.vo.UserVo>
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
 	 */
-	IPage getUserPage(PageModel pm);
+	IPage<UserVo> findPage(PageModel pm, UserQueryCriteria userQueryCriteria, DataScope dataScope);
+
+	/**
+	 * findPage
+	 *
+	 * @param userQueryCriteria
+	 * @param dataScope
+	 * @return java.util.List<com.albedo.java.modules.sys.domain.vo.UserVo>
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
+	List<UserVo> findPage(UserQueryCriteria userQueryCriteria, DataScope dataScope);
 
 	/**
 	 * 删除用户
@@ -65,7 +83,15 @@ public interface UserService extends DataVoService<UserRepository, User, String,
 	 * @param id 用户ID
 	 * @return 用户信息
 	 */
-	UserVo getUserVoById(String id);
+	UserVo findUserVoById(String id);
+
+	/**
+	 * 通过ID查询用户信息
+	 *
+	 * @param id 用户ID
+	 * @return 用户信息
+	 */
+	UserDto findDtoById(String id);
 
 	/**
 	 * 查询上级部门的用户信息
@@ -75,13 +101,80 @@ public interface UserService extends DataVoService<UserRepository, User, String,
 	 */
 	List<User> listAncestorUsersByUsername(String username);
 
-	void lockOrUnLock(List<String> idList);
+	/**
+	 * lockOrUnLock
+	 *
+	 * @param idList
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
+	void lockOrUnLock(Set<String> idList);
 
+	/**
+	 * resetPassword
+	 *
+	 * @param passwordRestVo
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
 	void resetPassword(PasswordRestVo passwordRestVo);
 
+	/**
+	 * changePassword
+	 *
+	 * @param username
+	 * @param passwordChangeVo
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
 	void changePassword(String username, PasswordChangeVo passwordChangeVo);
 
-	UserVo findOneVoByUserName(String username);
+	/**
+	 * findVoByUsername
+	 *
+	 * @param username
+	 * @return com.albedo.java.modules.sys.domain.vo.UserVo
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
+	UserVo findVoByUsername(String username);
 
+	/**
+	 * save
+	 *
+	 * @param userExcelVo
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
 	void save(UserExcelVo userExcelVo);
+
+	/**
+	 * findListByRoleId
+	 *
+	 * @param roleId
+	 * @return java.util.List<com.albedo.java.modules.sys.domain.User>
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
+	List<User> findListByRoleId(String roleId);
+
+	/**
+	 * updateEmail
+	 *
+	 * @param username
+	 * @param userEmailDto
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:36
+	 */
+	void updateEmail(String username, UserEmailDto userEmailDto);
+
+	/**
+	 * updateAvatar
+	 *
+	 * @param username
+	 * @param avatar
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:36
+	 */
+	void updateAvatar(String username, String avatar);
 }

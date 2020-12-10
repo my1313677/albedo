@@ -7,6 +7,11 @@ import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Map;
 
+/**
+ * @author somewhere
+ * @description
+ * @date 2020/5/31 17:09
+ */
 @UtilityClass
 @Slf4j
 public class ObjectUtil extends cn.hutool.core.util.ObjectUtil {
@@ -35,7 +40,7 @@ public class ObjectUtil extends cn.hutool.core.util.ObjectUtil {
 		}
 		// 如果不为null，需要处理几种特殊对象类型
 		if (obj instanceof String) {
-			return obj.equals("");
+			return "".equals(obj);
 		} else if (obj instanceof Collection) {
 			// 对象为集合
 			Collection coll = (Collection) obj;

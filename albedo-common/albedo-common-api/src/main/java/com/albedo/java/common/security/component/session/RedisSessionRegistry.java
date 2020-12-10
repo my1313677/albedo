@@ -23,6 +23,11 @@ import org.springframework.util.Assert;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+/**
+ * @author somewhere
+ * @description
+ * @date 2020/5/31 17:09
+ */
 @Slf4j
 @AllArgsConstructor
 public class RedisSessionRegistry implements SessionRegistry,
@@ -36,10 +41,12 @@ public class RedisSessionRegistry implements SessionRegistry,
 	// ~ Methods
 	// ========================================================================================================
 
+	@Override
 	public List<Object> getAllPrincipals() {
 		return new ArrayList<>(redisTemplate.boundHashOps(PRINCIPALS).keys());
 	}
 
+	@Override
 	public List<SessionInformation> getAllSessions(Object principal,
 												   boolean includeExpiredSessions) {
 		Set<String> sessionsUsedByPrincipal = getPrincipals(principal);
@@ -66,17 +73,20 @@ public class RedisSessionRegistry implements SessionRegistry,
 		return list;
 	}
 
+	@Override
 	public SessionInformation getSessionInformation(String sessionId) {
 		Assert.hasText(sessionId, "SessionId required as per interface contract");
 
 		return (SessionInformation) redisTemplate.boundHashOps(SESSIONIDS).get(sessionId);
 	}
 
+	@Override
 	public void onApplicationEvent(SessionDestroyedEvent event) {
 		String sessionId = event.getId();
 		removeSessionInformation(sessionId);
 	}
 
+	@Override
 	public void refreshLastRequest(String sessionId) {
 		Assert.hasText(sessionId, "SessionId required as per interface contract");
 
@@ -84,13 +94,15 @@ public class RedisSessionRegistry implements SessionRegistry,
 		if (info != null) {
 			long lastRequestTime = info.getLastRequest().getTime();
 			info.refreshLastRequest();
-			if (applicationProperties.getDbSyncSessionPeriod() * 60 * 1000 < info.getLastRequest().getTime() - lastRequestTime) {
+			int dbSyncSessionPeriodTime = applicationProperties.getDbSyncSessionPeriod() * 60 * 1000;
+			if (dbSyncSessionPeriodTime < info.getLastRequest().getTime() - lastRequestTime) {
 				SpringContextHolder.publishEvent(new SysUserOnlineRefreshLastRequestEvent(info));
 			}
 		}
 
 	}
 
+	@Override
 	public void registerNewSession(String sessionId, Object principal) {
 		Assert.hasText(sessionId, "SessionId required as per interface contract");
 		Assert.notNull(principal, "Principal required as per interface contract");
@@ -122,7 +134,7 @@ public class RedisSessionRegistry implements SessionRegistry,
 		}
 		Authentication authentication = SecurityUtil.getAuthentication();
 		if (authentication != null && authentication.isAuthenticated()) {
-			UserOnline userOnline = userOnlineService.findOneBySessionId(sessionId);
+			UserOnline userOnline = userOnlineService.getById(sessionId);
 			if (userOnline == null) {
 				userOnline = LoginUtil.getUserOnline(authentication);
 				SpringContextHolder.publishEvent(new SysUserOnlineEvent(userOnline));
@@ -130,15 +142,19 @@ public class RedisSessionRegistry implements SessionRegistry,
 		}
 	}
 
+	@Override
 	public void removeSessionInformation(String sessionId) {
 		Assert.hasText(sessionId, "SessionId required as per interface contract");
-
-		SessionInformation info = getSessionInformation(sessionId);
-
+		userOnlineService.deleteBySessionId(sessionId);
+		SessionInformation info = null;
+		try {
+			info = getSessionInformation(sessionId);
+		} catch (Exception e) {
+			redisTemplate.boundHashOps(SESSIONIDS).delete(sessionId);
+		}
 		if (info == null) {
 			return;
 		}
-
 		if (log.isTraceEnabled()) {
 			log.debug("Removing session " + sessionId
 				+ " from set of registered sessions");
@@ -173,7 +189,6 @@ public class RedisSessionRegistry implements SessionRegistry,
 				+ sessionsUsedByPrincipal);
 		}
 
-		userOnlineService.deleteBySessionId(sessionId);
 	}
 
 	public Set<String> putIfAbsentPrincipals(Object principal, final Set<String> set) {

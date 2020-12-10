@@ -3,13 +3,14 @@ package com.albedo.java.modules.quartz.config;
 import com.albedo.java.common.core.constant.ScheduleConstants;
 import com.albedo.java.modules.quartz.repository.JobRepository;
 import org.quartz.Scheduler;
+import org.redisson.api.RedissonClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
 import javax.sql.DataSource;
@@ -51,7 +52,7 @@ public class ScheduleConfig {
 
 		factory.setSchedulerName("AlbedoQuartzScheduler");
 		// 延时启动
-		factory.setStartupDelay(1);
+		factory.setStartupDelay(10);
 		factory.setApplicationContextSchedulerContextKey("applicationContextKey");
 		// 可选，QuartzScheduler
 		// 启动时更新己存在的Job，这样就不用每次修改targetObject后删除qrtz_job_details表对应记录了
@@ -75,7 +76,8 @@ public class ScheduleConfig {
 											MessageListenerAdapter listenerAdapter) {
 		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
-		container.addMessageListener(listenerAdapter, new PatternTopic(ScheduleConstants.REDIS_SCHEDULE_DEFAULT_CHANNEL)); // new PatternTopic("这里是监听的通道的名字") 通道要和发布者发布消息的通道一致
+		// new PatternTopic("这里是监听的通道的名字") 通道要和发布者发布消息的通道一致
+		container.addMessageListener(listenerAdapter, new PatternTopic(ScheduleConstants.REDIS_SCHEDULE_DEFAULT_CHANNEL));
 		return container;
 	}
 
@@ -89,13 +91,7 @@ public class ScheduleConfig {
 	MessageListenerAdapter listenerAdapter(ScheduleReceiver scheduleReceiver) {
 		// redisReceiver 消息接收者
 		// receiveMessage 消息接收后的方法
-		return new MessageListenerAdapter(scheduleReceiver, "receiveMessage");
-	}
-
-
-	@Bean
-	StringRedisTemplate stringRedisTemplate(RedisConnectionFactory connectionFactory) {
-		return new StringRedisTemplate(connectionFactory);
+		return new MessageListenerAdapter(scheduleReceiver);
 	}
 
 	/**
@@ -104,8 +100,9 @@ public class ScheduleConfig {
 	 * @return
 	 */
 	@Bean
-	ScheduleReceiver scheduleReceiver(Scheduler scheduler, JobRepository jobRepository) {
-		return new ScheduleReceiver(scheduler, jobRepository);
+	ScheduleReceiver scheduleReceiver(Scheduler scheduler, JobRepository jobRepository,
+									  RedissonClient redissonClient, JdkSerializationRedisSerializer jdkSerializationRedisSerializer) {
+		return new ScheduleReceiver(scheduler, jobRepository, redissonClient, jdkSerializationRedisSerializer);
 	}
 
 

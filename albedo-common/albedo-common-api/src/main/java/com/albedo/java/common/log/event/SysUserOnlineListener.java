@@ -24,7 +24,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.session.SessionInformation;
-import org.springframework.util.Assert;
 
 
 /**
@@ -41,7 +40,8 @@ public class SysUserOnlineListener {
 	@EventListener(SysUserOnlineEvent.class)
 	public void saveSysUserOnline(SysUserOnlineEvent event) {
 		UserOnline userOnline = (UserOnline) event.getSource();
-		userOnlineService.saveOrUpdate(userOnline);
+		userOnlineService.saveByEvent(userOnline);
+
 	}
 
 	@Async
@@ -49,11 +49,14 @@ public class SysUserOnlineListener {
 	@EventListener(SysUserOnlineRefreshLastRequestEvent.class)
 	public void saveSysUserOnlineRefreshLastRequestEvent(SysUserOnlineRefreshLastRequestEvent event) {
 		SessionInformation sessionInformation = (SessionInformation) event.getSource();
+		UserOnline userOnline = userOnlineService.getById(sessionInformation.getSessionId());
+		if (userOnline != null) {
+			userOnline.setLastAccessTime(sessionInformation.getLastRequest());
+			userOnlineService.updateById(userOnline);
+		} else {
+			log.debug("sessionInformation sessionId " + sessionInformation.getSessionId() + ", onlineUser is null");
+		}
 
-		UserOnline userOnline = userOnlineService.findOneBySessionId(sessionInformation.getSessionId());
-		Assert.isTrue(userOnline != null, "sessionInformation sessionId " + sessionInformation.getSessionId() + ", onlineUser is null");
-		userOnline.setLastAccessTime(sessionInformation.getLastRequest());
-		userOnlineService.updateById(userOnline);
 	}
 
 }

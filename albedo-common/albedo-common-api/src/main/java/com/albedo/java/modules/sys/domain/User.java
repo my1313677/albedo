@@ -16,10 +16,9 @@
 
 package com.albedo.java.modules.sys.domain;
 
-import com.albedo.java.common.core.annotation.SearchField;
 import com.albedo.java.common.persistence.domain.IdEntity;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -36,32 +35,28 @@ import lombok.ToString;
 @Setter
 @ToString
 @TableName("sys_user")
+@EqualsAndHashCode(callSuper = true)
 public class User extends IdEntity<User> {
 
+	public static final String F_USERNAME = "username";
 	private static final long serialVersionUID = 1L;
-
 	/**
 	 * 用户名
 	 */
-	@SearchField
 	private String username;
 
+	private String nickname;
+
 	private String password;
-	/**
-	 * 随机盐
-	 */
-	@JsonIgnore
-	private String salt;
 
 	/**
 	 * 锁定标记
 	 */
-	private String available;
+	private Integer available;
 
 	/**
 	 * 邮箱
 	 */
-	@SearchField
 	private String email;
 	/**
 	 * 电话

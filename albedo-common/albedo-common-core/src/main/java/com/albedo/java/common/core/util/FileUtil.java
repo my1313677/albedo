@@ -1,13 +1,13 @@
 package com.albedo.java.common.core.util;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.security.MessageDigest;
+import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.UUID;
 
@@ -18,9 +18,25 @@ import java.util.UUID;
  * @version 2013-06-21
  */
 @Slf4j
-public class FileUtil extends FileUtils {
+public class FileUtil extends cn.hutool.core.io.FileUtil {
 
 
+	/**
+	 * 定义GB的计算常量
+	 */
+	private static final int GB = 1024 * 1024 * 1024;
+	/**
+	 * 定义MB的计算常量
+	 */
+	private static final int MB = 1024 * 1024;
+	/**
+	 * 定义KB的计算常量
+	 */
+	private static final int KB = 1024;
+	/**
+	 * 格式化小数
+	 */
+	private static final DecimalFormat DF = new DecimalFormat("0.00");
 	public static String FILENAME_PATTERN = "[a-zA-Z0-9_\\-\\|\\.\\u4e00-\\u9fa5]+";
 
 	/**
@@ -387,27 +403,28 @@ public class FileUtil extends FileUtils {
 			dirPaths = dirPaths + File.separator;
 		}
 		String filePath = file.getAbsolutePath();
-		// 对于目录，必须在entry名字后面加上"/"，表示它将以目录项存储
+		// 对于目录，必须在entry名字后面加上StringUtil.SLASH，表示它将以目录项存储
 		if (file.isDirectory()) {
-			filePath += "/";
+			filePath += StringUtil.SLASH;
 		}
 		int index = filePath.indexOf(dirPaths);
 
 		return filePath.substring(index + dirPaths.length());
 	}
 
-	public static String getFileMD5(File file) {
+	public static String getFileMd5(File file) {
 		if (!file.isFile()) {
 			return null;
 		}
 		MessageDigest digest = null;
 		FileInputStream in = null;
-		byte[] buffer = new byte[1024];
+		int length = 1024;
+		byte[] buffer = new byte[length];
 		int len;
 		try {
 			digest = MessageDigest.getInstance("MD5");
 			in = new FileInputStream(file);
-			while ((len = in.read(buffer, 0, 1024)) != -1) {
+			while ((len = in.read(buffer, 0, length)) != -1) {
 				digest.update(buffer, 0, len);
 			}
 			in.close();
@@ -431,7 +448,7 @@ public class FileUtil extends FileUtils {
 		m = (cal.get(Calendar.MONTH) + 1);
 		d = cal.get(Calendar.DAY_OF_MONTH);
 		cal = null;
-		return StringUtil.toAppendStr("/", y, "/", m, "/", d, "/");
+		return StringUtil.toAppendStr(StringUtil.SLASH, y, StringUtil.SLASH, m, StringUtil.SLASH, d, StringUtil.SLASH);
 	}
 
 	/**
@@ -443,39 +460,10 @@ public class FileUtil extends FileUtils {
 	public static String getRandomFileName(String fileName) {
 		String fileNewName = "";
 		if (StringUtil.isNotEmpty(fileName)) {
-			String extension = fileName.substring(fileName.lastIndexOf(".") + 1);
-			fileNewName = StringUtil.toAppendStr(UUID.randomUUID(), ".", extension);
+			String extension = fileName.substring(fileName.lastIndexOf(StringUtil.DOT) + 1);
+			fileNewName = StringUtil.toAppendStr(UUID.randomUUID(), StringUtil.DOT, extension);
 		}
 		return fileNewName;
-	}
-
-	/**
-	 * 写入文件
-	 *
-	 * @param fileName
-	 * @param content
-	 * @param append
-	 */
-	public static void writeToFile(String fileName, String content, boolean append) {
-		FileUtil.writeToFile(fileName, content, "utf-8", append);
-		log.debug("文件 " + fileName + " 写入成功!");
-	}
-
-	/**
-	 * 写入文件
-	 *
-	 * @param fileName
-	 * @param content
-	 * @param encoding
-	 * @param append
-	 */
-	public static void writeToFile(String fileName, String content, String encoding, boolean append) {
-		try {
-			FileUtils.write(new File(fileName), content, encoding, append);
-			log.debug("文件 " + fileName + " 写入成功!");
-		} catch (IOException e) {
-			log.error("{}", e);
-		}
 	}
 
 
@@ -500,14 +488,17 @@ public class FileUtil extends FileUtils {
 		throws UnsupportedEncodingException {
 		final String agent = request.getHeader("USER-AGENT");
 		String filename = fileName;
-		if (agent.contains("MSIE")) {
+		boolean msie = agent.contains("MSIE");
+		boolean firefox = agent.contains("Firefox");
+		boolean chrome = agent.contains("Chrome");
+		if (msie) {
 			// IE浏览器
 			filename = URLEncoder.encode(filename, "utf-8");
 			filename = filename.replace("+", " ");
-		} else if (agent.contains("Firefox")) {
+		} else if (firefox) {
 			// 火狐浏览器
 			filename = new String(fileName.getBytes(), "ISO8859-1");
-		} else if (agent.contains("Chrome")) {
+		} else if (chrome) {
 			// google浏览器
 			filename = URLEncoder.encode(filename, "utf-8");
 		} else {
@@ -555,6 +546,26 @@ public class FileUtil extends FileUtils {
 				}
 			}
 		}
+	}
+
+	/**
+	 * 文件大小转换
+	 */
+	public static String getSize(long size) {
+		String resultSize;
+		if (size / GB >= 1) {
+			//如果当前Byte的值大于等于1GB
+			resultSize = DF.format(size / (float) GB) + "GB   ";
+		} else if (size / MB >= 1) {
+			//如果当前Byte的值大于等于1MB
+			resultSize = DF.format(size / (float) MB) + "MB   ";
+		} else if (size / KB >= 1) {
+			//如果当前Byte的值大于等于1KB
+			resultSize = DF.format(size / (float) KB) + "KB   ";
+		} else {
+			resultSize = size + "B   ";
+		}
+		return resultSize;
 	}
 
 }

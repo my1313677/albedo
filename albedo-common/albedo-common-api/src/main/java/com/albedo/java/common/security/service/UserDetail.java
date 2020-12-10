@@ -16,6 +16,7 @@
 
 package com.albedo.java.common.security.service;
 
+import com.albedo.java.common.persistence.datascope.DataScope;
 import lombok.Getter;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.core.GrantedAuthority;
@@ -34,6 +35,11 @@ public class UserDetail extends User {
 	 */
 	@Getter
 	private String id;
+	/**
+	 * 上级部门ID
+	 */
+	@Getter
+	private DataScope dataScope;
 	/**
 	 * 部门ID
 	 */
@@ -65,11 +71,12 @@ public class UserDetail extends User {
 	 * @throws IllegalArgumentException if a <code>null</code> value was passed either as
 	 *                                  a parameter or as an element in the <code>GrantedAuthority</code> collection
 	 */
-	public UserDetail(String id, String deptId, String deptName, String loginId, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities) {
+	public UserDetail(String id, String deptId, String deptName, String loginId, String password, boolean enabled, boolean accountNonExpired, boolean credentialsNonExpired, boolean accountNonLocked, Collection<? extends GrantedAuthority> authorities, DataScope dataScope) {
 		super(loginId, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
 		this.id = id;
 		this.deptId = deptId;
 		this.deptName = deptName;
+		this.dataScope = dataScope;
 	}
 
 }

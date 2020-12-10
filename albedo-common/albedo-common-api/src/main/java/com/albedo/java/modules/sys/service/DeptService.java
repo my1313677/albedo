@@ -16,13 +16,15 @@
 
 package com.albedo.java.modules.sys.service;
 
-import com.albedo.java.common.core.vo.TreeNode;
-import com.albedo.java.common.persistence.service.TreeVoService;
+import com.albedo.java.common.persistence.service.TreeService;
 import com.albedo.java.modules.sys.domain.Dept;
-import com.albedo.java.modules.sys.domain.vo.DeptDataVo;
-import com.albedo.java.modules.sys.repository.DeptRepository;
+import com.albedo.java.modules.sys.domain.dto.DeptDto;
+import com.albedo.java.modules.sys.domain.dto.DeptQueryCriteria;
+import com.albedo.java.modules.sys.domain.vo.DeptVo;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -32,31 +34,46 @@ import java.util.List;
  * @author somewhere
  * @since 2019/2/1
  */
-public interface DeptService extends TreeVoService<DeptRepository, Dept, DeptDataVo> {
+public interface DeptService extends TreeService<Dept, DeptDto> {
 
 
 	/**
-	 * 查询用户部门树
+	 * 获取祖先后代节点
 	 *
+	 * @param deptId
 	 * @return
 	 */
-	List<TreeNode> listCurrentUserDeptTrees(String deptId);
+	List<String> findDescendantIdList(String deptId);
+
+	/**
+	 * 批量删除
+	 *
+	 * @param ids
+	 * @return
+	 */
+	boolean removeByIds(Set<String> ids);
 
 	/**
 	 * 添加信息部门
 	 *
-	 * @param deptDataVo
+	 * @param deptDto
 	 * @return
 	 */
-	Boolean saveDept(DeptDataVo deptDataVo);
+	@Override
+	void saveOrUpdate(DeptDto deptDto);
 
 	/**
-	 * 删除部门
+	 * 查询部门树集合
 	 *
-	 * @param ids 部门 ID
-	 * @return 成功、失败
+	 * @param deptQueryCriteria
+	 * @return
 	 */
-	Boolean removeDeptByIds(List<String> ids);
+	IPage<DeptVo> findTreeList(DeptQueryCriteria deptQueryCriteria);
 
-
+	/**
+	 * 锁定、解锁
+	 *
+	 * @param ids
+	 */
+	void lockOrUnLock(Set<String> ids);
 }

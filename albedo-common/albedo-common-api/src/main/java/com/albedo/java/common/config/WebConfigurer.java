@@ -1,11 +1,11 @@
 package com.albedo.java.common.config;
 
 import cn.hutool.core.util.ArrayUtil;
+import com.albedo.java.common.core.config.ApplicationConfig;
 import com.albedo.java.common.core.config.ApplicationProperties;
 import com.albedo.java.common.core.constant.CommonConstants;
 import com.albedo.java.common.core.util.DefaultProfileUtil;
 import com.albedo.java.common.core.util.StringUtil;
-import com.albedo.java.common.security.filter.BodyFilter;
 import com.albedo.java.common.security.filter.CachingHttpHeadersFilter;
 import io.undertow.UndertowOptions;
 import lombok.AllArgsConstructor;
@@ -25,6 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -63,13 +64,13 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
 		if (ArrayUtil.contains(env.getActiveProfiles(), CommonConstants.SPRING_PROFILE_PRODUCTION)) {
 			initCachingHttpHeadersFilter(servletContext, disps);
 		}
-		log.debug("Registering bodyFilter");
-		FilterRegistration.Dynamic bodyFilter = servletContext.addFilter(
-			"bodyFilter",
-			new BodyFilter(applicationProperties));
-		bodyFilter.addMappingForUrlPatterns(disps, true,
-			applicationProperties.getAdminPath("/*"));
-		bodyFilter.setAsyncSupported(true);
+//		log.debug("Registering bodyFilter");
+//		FilterRegistration.Dynamic bodyFilter = servletContext.addFilter(
+//			"bodyFilter",
+//			new BodyFilter(applicationProperties));
+//		bodyFilter.addMappingForUrlPatterns(disps, true,
+//			applicationProperties.getAdminPath("/*"));
+//		bodyFilter.setAsyncSupported(true);
 
 		log.info("Web application fully configured");
 	}
@@ -137,7 +138,7 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
 		FilterRegistration.Dynamic cachingHttpHeadersFilter = servletContext.addFilter("cachingHttpHeadersFilter",
 			new CachingHttpHeadersFilter(applicationProperties));
 
-		cachingHttpHeadersFilter.addMappingForUrlPatterns(disps, true, "/statics/*", "/WEB-INF/views/*", "classpath:/statics/*", "classpath:/WEB-INF/views/*");
+		cachingHttpHeadersFilter.addMappingForUrlPatterns(disps, true, "/statics/*", "/WEB-INF/views/*");
 		cachingHttpHeadersFilter.setAsyncSupported(true);
 
 	}
@@ -196,8 +197,14 @@ public class WebConfigurer implements ServletContextInitializer, WebServerFactor
 //    }
 
 	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		String pathUtl = "file:" + ApplicationConfig.getUploadPath().replace("\\", "/");
+		registry.addResourceHandler(applicationProperties.getAdminPath("/asset-file/**")).addResourceLocations(pathUtl).setCachePeriod(0);
+	}
+
+	@Override
 	public void addViewControllers(ViewControllerRegistry registry) {
-		registry.addViewController("/").setViewName(StringUtil.isEmpty(applicationProperties.getDefaultView()) ? "index.html" : applicationProperties.getDefaultView());
+		registry.addViewController(StringUtil.SLASH).setViewName(StringUtil.isEmpty(applicationProperties.getDefaultView()) ? "index.html" : applicationProperties.getDefaultView());
 		registry.setOrder(Ordered.HIGHEST_PRECEDENCE);
 	}
 

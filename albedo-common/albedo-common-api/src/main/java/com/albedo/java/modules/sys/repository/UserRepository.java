@@ -16,14 +16,17 @@
 
 package com.albedo.java.modules.sys.repository;
 
+import com.albedo.java.common.persistence.datascope.DataScope;
 import com.albedo.java.common.persistence.repository.BaseRepository;
 import com.albedo.java.modules.sys.domain.User;
 import com.albedo.java.modules.sys.domain.vo.UserVo;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Constants;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -40,16 +43,26 @@ public interface UserRepository extends BaseRepository<User> {
 	 * @param username 用户名
 	 * @return userVo
 	 */
-	UserVo getUserVoByUsername(String username);
+	UserVo findVoByUsername(String username);
 
 	/**
 	 * 分页查询用户信息（含角色）
 	 *
-	 * @param page    分页
-	 * @param wrapper 查询参数
+	 * @param page      分页
+	 * @param wrapper   查询参数
+	 * @param dataScope 数据权限
 	 * @return list
 	 */
-	IPage<List<UserVo>> getUserVoPage(IPage page, @Param("ew") Wrapper wrapper);
+	IPage<UserVo> findUserVoPage(IPage page, @Param(Constants.WRAPPER) Wrapper<User> wrapper, DataScope dataScope);
+
+	/**
+	 * 分页查询用户信息（含角色）
+	 *
+	 * @param wrapper   查询参数
+	 * @param dataScope 数据权限
+	 * @return list
+	 */
+	List<UserVo> findUserVoPage(@Param(Constants.WRAPPER) Wrapper<User> wrapper, DataScope dataScope);
 
 	/**
 	 * 通过ID查询用户信息
@@ -57,5 +70,35 @@ public interface UserRepository extends BaseRepository<User> {
 	 * @param id 用户ID
 	 * @return userVo
 	 */
-	UserVo getUserVoById(String id);
+	UserVo findUserVoById(String id);
+
+	/**
+	 * findListByRoleId
+	 *
+	 * @param roleId
+	 * @return java.util.List<com.albedo.java.modules.sys.domain.User>
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
+	List<User> findListByRoleId(String roleId);
+
+	/**
+	 * findListByRoleIds
+	 *
+	 * @param roleIds
+	 * @return java.util.List<com.albedo.java.modules.sys.domain.User>
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
+	List<User> findListByRoleIds(@Param("roleIds") Set<String> roleIds);
+
+	/**
+	 * findListByMenuId
+	 *
+	 * @param menuId
+	 * @return java.util.List<com.albedo.java.modules.sys.domain.User>
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:35
+	 */
+	List<User> findListByMenuId(String menuId);
 }

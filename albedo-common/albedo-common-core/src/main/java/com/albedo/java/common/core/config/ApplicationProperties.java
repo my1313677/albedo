@@ -16,6 +16,8 @@ import java.util.List;
  * <p>
  * Properties are configured in the application.yml file.
  * </p>
+ *
+ * @author somewhere
  */
 @Configuration
 @ConfigurationProperties(prefix = "application", ignoreInvalidFields = true)
@@ -24,32 +26,23 @@ public class ApplicationProperties {
 
 	private String adminPath = "/a";
 	private String defaultView;
-	private String baseClassPath = "com.albedo.java";
 	private Boolean addressEnabled = true;
 	private int dbSyncSessionPeriod = 1;
 	private String name = "albedo";
 	private String urlSuffix = ".html";
 	private Boolean developMode = true;
 	private Boolean cluster = false;
-	private String staticFileDirectory = "";
 	private String logPath = ".logs/";
 	private Security security = new Security();
 	private Http http = new Http();
+	private Rsa rsa = new Rsa();
 	private CorsConfiguration cors = new CorsConfiguration();
 
-
-//    public String getStaticUrlPath(String strs) {
-//        return StringUtil.toAppendStr( "/file/get", strs);
-//    }
-
-	public String getStaticFileDirectory(String strs) {
-		return StringUtil.toAppendStr(
-			staticFileDirectory, strs);
-	}
 
 	public String getAdminPath(String url) {
 		return StringUtil.toAppendStr(adminPath, url);
 	}
+
 
 	@Data
 	public static class Security {
@@ -86,7 +79,7 @@ public class ApplicationProperties {
 
 			@Data
 			public static class Jwt {
-				private String secret;
+				private String base64Secret;
 				private long tokenValidityInSeconds = 1800L;
 				private long tokenValidityInSecondsForRememberMe = 2592000L;
 
@@ -117,6 +110,14 @@ public class ApplicationProperties {
 			}
 
 		}
+	}
+
+	@Data
+	public static class Rsa {
+
+		private String publicKey;
+		private String privateKey;
+
 	}
 
 	@Data

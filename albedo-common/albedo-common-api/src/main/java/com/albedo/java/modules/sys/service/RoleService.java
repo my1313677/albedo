@@ -16,12 +16,12 @@
 
 package com.albedo.java.modules.sys.service;
 
-import com.albedo.java.common.persistence.service.DataVoService;
+import com.albedo.java.common.persistence.service.DataService;
 import com.albedo.java.modules.sys.domain.Role;
-import com.albedo.java.modules.sys.domain.vo.RoleDataVo;
-import com.albedo.java.modules.sys.repository.RoleRepository;
+import com.albedo.java.modules.sys.domain.dto.RoleDto;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * <p>
@@ -31,7 +31,7 @@ import java.util.List;
  * @author somewhere
  * @since 2019/2/1
  */
-public interface RoleService extends DataVoService<RoleRepository, Role, String, RoleDataVo> {
+public interface RoleService extends DataService<Role, RoleDto, String> {
 
 	/**
 	 * 通过用户ID，查询角色信息
@@ -39,7 +39,17 @@ public interface RoleService extends DataVoService<RoleRepository, Role, String,
 	 * @param userId
 	 * @return
 	 */
-	List<Role> listRolesByUserId(String userId);
+	List<Role> findListByUserId(String userId);
+
+	/**
+	 * findDeptIdsByRoleId
+	 *
+	 * @param id
+	 * @return java.util.List<java.lang.String>
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:34
+	 */
+	List<String> findDeptIdsByRoleId(String id);
 
 	/**
 	 * 通过角色ID，删除角色
@@ -47,7 +57,24 @@ public interface RoleService extends DataVoService<RoleRepository, Role, String,
 	 * @param ids
 	 * @return
 	 */
-	Boolean removeRoleByIds(List<String> ids);
+	Boolean removeRoleByIds(Set<String> ids);
 
-	void lockOrUnLock(List<String> idList);
+	/**
+	 * lockOrUnLock
+	 *
+	 * @param idList
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:34
+	 */
+	void lockOrUnLock(Set<String> idList);
+
+	/**
+	 * findLevelByUserId
+	 *
+	 * @param userId
+	 * @return java.lang.Integer
+	 * @author somewhere
+	 * @updateTime 2020/5/31 17:34
+	 */
+	Integer findLevelByUserId(String userId);
 }

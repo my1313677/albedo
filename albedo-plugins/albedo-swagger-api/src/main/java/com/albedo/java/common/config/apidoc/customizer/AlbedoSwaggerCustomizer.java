@@ -1,6 +1,7 @@
 package com.albedo.java.common.config.apidoc.customizer;
 
 import com.albedo.java.common.config.ApplicationSwaggerProperties;
+import com.albedo.java.common.core.vo.PageModel;
 import com.google.common.collect.Lists;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +17,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+/**
+ * @author somewhere
+ * @description
+ * @date 2020/5/31 17:06
+ */
 public class AlbedoSwaggerCustomizer implements SwaggerCustomizer, Ordered {
 	public static final int DEFAULT_ORDER = 0;
 	private final ApplicationSwaggerProperties applicationSwaggerProperties;
@@ -32,11 +38,11 @@ public class AlbedoSwaggerCustomizer implements SwaggerCustomizer, Ordered {
 		docket.host(this.applicationSwaggerProperties.getHost())
 			.protocols(new HashSet(Arrays.asList(this.applicationSwaggerProperties.getProtocols())))
 			.apiInfo(apiInfo).useDefaultResponseMessages(this.applicationSwaggerProperties.isUseDefaultResponseMessages())
-//            .forCodeGeneration(true)
 			.securitySchemes(securitySchemes())
 			.securityContexts(securityContexts())
 			.forCodeGeneration(true).directModelSubstitute(ByteBuffer.class, String.class)
-			.genericModelSubstitutes(new Class[]{ResponseEntity.class}).select()
+			.genericModelSubstitutes(ResponseEntity.class)
+			.ignoredParameterTypes(PageModel.class).select()
 			.paths(PathSelectors.regex(this.applicationSwaggerProperties.getDefaultIncludePattern()))
 			.build();
 	}
